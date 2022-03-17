@@ -1,0 +1,53 @@
+---
+title: "Paklijsten AgroTallan"
+author: "Johannes W.H. van der Waal"
+date: "24-2-2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(base)
+```
+
+## Paklijsten
+Lees de producentenlijst en paklijsten in. Deze zijn aangemaakt in Excel en lang formaat:
+
+```{r at}
+library(readxl)
+paklijsten <- read_excel("paklijsten.xlsx")
+at <- read_excel("at.xlsx")
+print(paklijsten)
+```
+Er zijn in totaal `r length(unique(paklijsten$code))` unieke producentencodes in deze organisatie.
+
+## Zonelijsten
+Koppel de zones aan de paklijsten.
+
+```{r join}
+code_zone <- paklijsten %>% inner_join(., at, by = c("code" = "code")) %>%
+  select(-organisation, -lot, -name, - area) %>% 
+  arrange(zone)
+options(max.print=1000000)
+print(code_zone)
+```
+Er zijn in totaal `r length(unique(code_zone$zone))` unieke zonecodes in deze zendingen.
+
+Deze lijst maakt het mogelijk om een monster te nemen uit elke zone, alleen vanuit de toplagen:
+
+```{r toplaag}
+#codes in de toplagen
+options(max.print=1000000)
+toplayer <- code_zone %>% mutate(toplayer = str_detect(pallet, pattern = "TL")) %>%
+  filter(toplayer == TRUE) %>%
+group_by(zone, code, ctr) %>%
+  arrange(zone)
+print.data.frame(toplayer)
+```
+Hoeveel unieke zones uit deze lijst: `r length(unique(toplayer$zone))`. 
+Hoeveel unieke zones in zending:  `r length(unique(code_zone$zone))`
+
+

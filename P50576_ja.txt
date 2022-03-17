@@ -1,0 +1,1 @@
+﻿"pallet","code","number","ctr","ordernr"
